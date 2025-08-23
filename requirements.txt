@@ -1,0 +1,8 @@
+scipy
+pandas
+numpy
+torch
+torchvision
+torchaudio
+torch_geometric
+matplotlib
