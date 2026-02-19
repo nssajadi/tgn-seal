@@ -1,0 +1,112 @@
+import argparse
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
+
+def preprocess(data_path):
+    u_list, i_list, ts_list, label_list = [], [], [], []
+    idx_list = []
+    feat_l = []
+    edge_idx = 0
+
+    with open(data_path) as f:
+        for line in f:
+            if line.strip() == "":
+                continue
+
+            e = line.strip().split()  # split on whitespace
+
+            u = int(e[0])  # SRC
+            i = int(e[1])  # DST
+
+            if i == u:
+                continue
+
+            ts = float(e[2])  # UNIXTS
+            label = 1
+
+            # No features → use empty vector
+            feat = np.zeros(1)
+
+            u_list.append(u)
+            i_list.append(i)
+            ts_list.append(ts)
+            label_list.append(label)
+            idx_list.append(edge_idx)
+            edge_idx += 1
+
+            feat_l.append(feat)
+
+    return pd.DataFrame(
+        {"u": u_list, "i": i_list, "ts": ts_list, "label": label_list, "idx": idx_list}
+    ), np.array(feat_l)
+
+
+def rename(df):
+    ui_list = [*df.u.tolist(), *df.i.tolist()]
+    unique_list = np.unique(np.array(ui_list))
+
+    for i, row in df.iterrows():
+        df.at[i, "u"] = np.where(unique_list == row["u"])[0][0]
+        df.at[i, "i"] = np.where(unique_list == row["i"])[0][0]
+
+
+def reindex(df, bipartite=True):
+    new_df = df.copy()
+    if bipartite:
+        assert df.u.max() - df.u.min() + 1 == len(df.u.unique())
+        assert df.i.max() - df.i.min() + 1 == len(df.i.unique())
+
+        upper_u = df.u.max() + 1
+        new_i = df.i + upper_u
+
+        new_df.i = new_i
+        new_df.u += 1
+        new_df.i += 1
+        new_df.idx += 1
+    else:
+        rename(new_df)
+        new_df.u += 1
+        new_df.i += 1
+        new_df.idx += 1
+
+    return new_df
+
+
+def run(data_name, bipartite=True):
+    Path("data/").mkdir(parents=True, exist_ok=True)
+    PATH = "./data/{}.txt".format(data_name)
+    OUT_DF = "./data/ml_{}.csv".format(data_name)
+    OUT_FEAT = "./data/ml_{}.npy".format(data_name)
+    OUT_NODE_FEAT = "./data/ml_{}_node.npy".format(data_name)
+
+    df, feat = preprocess(PATH)
+    new_df = reindex(df, bipartite)
+
+    empty = np.zeros(feat.shape[1])[np.newaxis, :]
+    feat = np.vstack([empty, feat])
+
+    max_idx = max(new_df.u.max(), new_df.i.max())
+    rand_feat = np.zeros((max_idx + 1, 172))
+
+    new_df.to_csv(OUT_DF)
+    np.save(OUT_FEAT, feat)
+    np.save(OUT_NODE_FEAT, rand_feat)
+
+
+parser = argparse.ArgumentParser("Interface for TGN data preprocessing")
+parser.add_argument(
+    "--data",
+    type=str,
+    help="Dataset name (eg. wikipedia or reddit)",
+    default="wikipedia",
+)
+parser.add_argument(
+    "--bipartite", action="store_true", help="Whether the graph is bipartite"
+)
+
+args = parser.parse_args()
+
+run(args.data, bipartite=args.bipartite)
