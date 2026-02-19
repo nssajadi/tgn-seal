@@ -6,3 +6,4 @@ torchvision
 torchaudio
 torch_geometric
 matplotlib
+scikit-learn
