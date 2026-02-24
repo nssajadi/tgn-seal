@@ -9,7 +9,7 @@ from utils.build_result_paths import build_models_result_paths
 # Configuration
 # =====================================================
 
-NUM_RUNS = 5
+NUM_RUNS = 10
 DATASET = "email1"
 
 AP_KEY = "val_aps"
