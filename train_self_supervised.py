@@ -1,17 +1,17 @@
-import math
-import logging
-import time
-import sys
 import argparse
-import torch
+import logging
+import math
 import numpy as np
 import pickle
+import sys
+import time
+import torch
 from pathlib import Path
 
 from evaluation.evaluation import eval_edge_prediction
 from model.tgn import TGN
-from utils.utils import EarlyStopMonitor, RandEdgeSampler, get_neighbor_finder
 from utils.data_processing import get_data, compute_time_statistics
+from utils.utils import EarlyStopMonitor, RandEdgeSampler, get_neighbor_finder
 
 torch.manual_seed(0)
 np.random.seed(0)
