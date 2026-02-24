@@ -73,8 +73,15 @@ class GIN(torch.nn.Module):
         self.lin2 = Linear(hidden_channels, 1)
 
     def forward(self, x, z, edge_index, batch, edge_weight=None, node_id=None):
-        # z_emb = self.z_embedding(z)
-        z_emb = fn.one_hot(z, self.max_z).to(torch.float)
+        device = self.conv1.nn[0].weight.device
+
+        z = z.to(device)
+        x = x.to(device)
+        edge_index = edge_index.to(device)
+        batch = batch.to(device)
+
+        z_emb = fn.one_hot(z, self.max_z).to(torch.float).to(device)
+        x = torch.cat([z_emb, x.to(torch.float)], 1)
 
         x = torch.cat([z_emb, x.to(torch.float)], 1)
         x = self.conv1(x, edge_index)
@@ -126,6 +133,12 @@ class DGCNN(torch.nn.Module):
         self.mlp = MLP([dense_dim, 128, 1], batch_norm=False)
 
     def forward(self, x, z, edge_index, batch):
+        device = self.z_embedding.weight.device
+        z = z.to(device)
+        x = x.to(device)
+        edge_index = edge_index.to(device)
+        batch = batch.to(device)
+
         z_emb = self.z_embedding(z)
         # z_emb = fn.one_hot(z, self.max_z).to(torch.float)
         x = torch.cat([z_emb, x.to(torch.float)], 1)
@@ -182,6 +195,18 @@ class SAGE(torch.nn.Module):
             conv.reset_parameters()
 
     def forward(self, x, z, edge_index, batch, edge_weight=None, node_id=None):
+        device = self.z_embedding.weight.device
+
+        z = z.to(device)
+        edge_index = edge_index.to(device)
+        batch = batch.to(device)
+        if x is not None:
+            x = x.to(device)
+        if node_id is not None:
+            node_id = node_id.to(device)
+        if edge_weight is not None:
+            edge_weight = edge_weight.to(device)
+
         z_emb = self.z_embedding(z)
         if z_emb.ndim == 3:  # in case z has multiple integer labels
             z_emb = z_emb.sum(dim=1)
@@ -250,6 +275,18 @@ class GCN(torch.nn.Module):
             conv.reset_parameters()
 
     def forward(self, x, z, edge_index, batch, edge_weight=None, node_id=None):
+        device = self.z_embedding.weight.device
+
+        z = z.to(device)
+        edge_index = edge_index.to(device)
+        batch = batch.to(device)
+        if x is not None:
+            x = x.to(device)
+        if node_id is not None:
+            node_id = node_id.to(device)
+        if edge_weight is not None:
+            edge_weight = edge_weight.to(device)
+
         z_emb = self.z_embedding(z)
         if z_emb.ndim == 3:  # in case z has multiple integer labels
             z_emb = z_emb.sum(dim=1)
