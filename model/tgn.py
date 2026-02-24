@@ -1,15 +1,17 @@
 import logging
+from collections import defaultdict
+
 import numpy as np
 import torch
-from collections import defaultdict
 from torch_geometric.loader import DataLoader
+
+from model.time_encoding import TimeEncode
+from modules.embedding_module import get_embedding_module
+from modules.link_prediction_module import get_link_pred_module
 from modules.memory import Memory
+from modules.memory_updater import get_memory_updater
 from modules.message_aggregator import get_message_aggregator
 from modules.message_function import get_message_function
-from modules.memory_updater import get_memory_updater
-from modules.embedding_module import get_embedding_module
-from model.time_encoding import TimeEncode
-from modules.link_prediction_module import get_link_pred_module
 
 
 class TGN(torch.nn.Module):
@@ -326,11 +328,11 @@ class TGN(torch.nn.Module):
         n_samples = len(source_nodes)
 
         pos_data_list = self.neighbor_finder.extract_enclosing_subgraph(
-            source_nodes, destination_nodes, edge_times, y=1, hop=2, n_neighbors=10
+            source_nodes, destination_nodes, edge_times, y=1, hop=3, n_neighbors=10
         )
 
         neg_data_list = self.neighbor_finder.extract_enclosing_subgraph(
-            source_nodes, negative_nodes, edge_times, y=0, hop=2, n_neighbors=10
+            source_nodes, negative_nodes, edge_times, y=0, hop=3, n_neighbors=10
         )
 
         pos_data_list, neg_data_list = self.compute_temporal_embeddings(
