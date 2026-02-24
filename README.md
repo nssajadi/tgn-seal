@@ -2,51 +2,95 @@
 
 ## Introduction
 
-This repository contains the implementation of TGN-SEAL, a novel framework for link prediction in sparse, evolving networks. Link prediction in dynamic networks—especially those with sparse connectivity and continuously changing structures—is a challenging problem with important applications in areas such as telecommunication, social networks, and recommendation systems.
+This repository implements **TGN-SEAL**, a new approach for predicting links in networks that change over time.
+Predicting links in such dynamic and often sparse networks is challenging, but it’s important for real-world
+applications like social networks, telecommunications, and recommendation systems.
+TGN-SEAL combines **Temporal Graph Networks (TGNs)** with **local structural information** by extracting enclosing
+subgraphs around candidate links. By jointly leveraging temporal patterns and topological context, TGN-SEAL improves
+predictive accuracy over standard TGNs, particularly under sparse conditions.
 
-TGN-SEAL builds upon Temporal Graph Networks (TGNs) by incorporating local structural information through enclosing subgraphs around candidate links. By jointly leveraging temporal patterns and topological context, our method improves predictive accuracy over standard TGNs, particularly under sparse conditions.
+![TGN-SEAL Architecture](figures/architecture.png)
 
-![](figures/architecture.png)
+---
 
-## Running the experiments
+## Installation
 
 ### Requirements
 
-Dependencies are included in requirements.txt
+* Python 3.9
+* All dependencies are listed in `requirements.txt`.
+
+Install dependencies with:
 
 ```bash
 pip install -r requirements.txt
 ```
 
+---
 
-### Dataset and Preprocessing
+## Dataset and Preprocessing
 
-### Download the Public Data
+TGN-SEAL has been tested on several datasets, including **CDR (Reality Mining)**, **email-Eu-core temporal**, and *
+*WikiTalk temporal networks**.
 
-1. Download the CDR datasets (e.g., the Reality Mining CDR dataset) from [here](http://realitycommons.media.mit.edu/realitymining.html).
+### Reality Mining CDR Dataset
 
-2. Convert the `.mat` files into CSV format using the provided script:
+1. Download the dataset from [MIT Reality Mining](http://realitycommons.media.mit.edu/realitymining.html).
+2. Convert `.mat` files to CSV format:
 
 ```bash
-python utils/extract_calls.py
+python utils/convert_reality_mining_calls_format.py
 ```
 
-#### Preprocess the data
-We use the dense `npy` format to save the features in binary format. If edge features or nodes 
-features are absent, they will be replaced by a vector of zeros. 
-```{bash}
-python utils/preprocess_data.py --data calls
+3. Preprocess the CSV data:
+
+```bash
+python utils/preprocess_csv_data.py --data calls
 ```
 
-### Model Training
+---
 
-Self-supervised learning using the link prediction task:
-```{bash}
-python train_self_supervised.py -d calls --use_memory --prefix tgn-seal --embedding_module time --n_runs 10 --n_epoch 40 
+### Email-Eu-core Temporal Network
+
+1. Download the dataset from [SNAP: Email-Eu-core temporal](https://snap.stanford.edu/data/email-Eu-core-temporal.html).
+2. Preprocess the TXT data:
+
+```bash
+python utils/preprocess_txt_data.py --data email
 ```
 
-### Plot Results
-After training, plot the results by running:
-```{bash}
-python plot_result 
+**Note:** Features are saved in dense `.npy` format. Missing edge or node features are replaced with zero vectors.
+
+---
+
+## Model Training
+
+Train TGN-SEAL for self-supervised link prediction:
+
+```bash
+python train_self_supervised.py \
+    -d {DATASET} \
+    --use_memory \
+    --prefix tgn-seal \
+    --embedding_module {EMBEDDING_MODULE} \
+    --n_runs {NUM_RUNS} \
+    --n_epoch {NUM_EPOCHS}
+```
+
+Replace placeholders (`{DATASET}`, `{EMBEDDING_MODULE}`, `{NUM_RUNS}`, `{NUM_EPOCHS}`) with your desired values.
+
+---
+
+## Plotting Results
+
+After training, visualize the results:
+
+```bash
+python -m plots.plot_tgn_seal_result
+```
+
+To compare against baseline models:
+
+```bash
+python -m plots.plot_results
 ```
