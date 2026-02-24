@@ -21,9 +21,6 @@ def preprocess(data_path):
             u = int(e[0])  # SRC
             i = int(e[1])  # DST
 
-            if i == u:
-                continue
-
             ts = float(e[2])  # UNIXTS
             label = 1
 
@@ -83,6 +80,7 @@ def run(data_name, bipartite=True):
     OUT_NODE_FEAT = "./data/ml_{}_node.npy".format(data_name)
 
     df, feat = preprocess(PATH)
+    df = df.sort_values(by="ts").reset_index(drop=True)
     new_df = reindex(df, bipartite)
 
     empty = np.zeros(feat.shape[1])[np.newaxis, :]
