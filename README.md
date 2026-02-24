@@ -94,3 +94,21 @@ To compare against baseline models:
 ```bash
 python -m plots.plot_results
 ```
+
+Here’s a clean way to add that information to your README under a new **“Evaluation”** section, so users know the order
+of operations:
+
+---
+
+## Evaluation
+
+To compare **TGN-SEAL** with baseline models:
+
+1. First, train the TGN or baseline models as described in the **Model Training** section.
+2. After training, run the statistical evaluation script:
+
+```bash
+python -m evaluation.statistical_evaluation
+```
+
+This will generate comparative metrics between **TGN-SEAL** and other baseline models.
